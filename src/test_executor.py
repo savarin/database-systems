@@ -25,16 +25,30 @@ def test_scan(tuples: Sequence[Tuple[Tuple[str, str], ...]]) -> None:
 
 
 def test_selection(tuples: Sequence[Tuple[Tuple[str, str], ...]]) -> None:
+    # true expression
     scan = executor.Scan(tuples)
     selection = executor.Selection(executor.TrueExpression(), scan)
 
     for item in tuples:
-        assert scan.next()
-        assert item == scan.execute()
+        assert selection.next()
+        assert item == selection.execute()
 
     assert not selection.next()
 
+    # false expression
     scan = executor.Scan(tuples)
     selection = executor.Selection(executor.FalseExpression(), scan)
+
+    assert not selection.next()
+
+    # equal expression
+    scan = executor.Scan(tuples)
+    selection = executor.Selection(executor.EqualExpression("value", "a"), scan)
+
+    assert selection.next()
+    assert selection.execute() == tuples[0]
+
+    assert selection.next()
+    assert selection.execute() == tuples[1]
 
     assert not selection.next()

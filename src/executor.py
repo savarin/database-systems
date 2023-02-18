@@ -14,14 +14,33 @@ class BinaryExpression(Protocol):
         ...
 
 
+@dataclasses.dataclass
 class TrueExpression:
+    ...
+
     def execute(self, row: Row) -> bool:
         return True
 
 
+@dataclasses.dataclass
 class FalseExpression:
+    ...
+
     def execute(self, row: Row) -> bool:
         return False
+
+
+@dataclasses.dataclass
+class EqualExpression:
+    column: str
+    value: str
+
+    def execute(self, row: Row) -> bool:
+        for k, v in row:
+            if k == self.column:
+                return v == self.value
+
+        raise Exception(f"Column {self.column} not found in row {row}.")
 
 
 class Operator(Protocol):
