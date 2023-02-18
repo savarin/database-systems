@@ -29,7 +29,7 @@ def test_projection(tuples: Sequence[executor.Row]) -> None:
     scan = executor.Scan(tuples)
     projection = executor.Projection(set(), scan)
 
-    for item in tuples:
+    for _ in tuples:
         assert projection.next()
         assert len(projection.execute()) == 0
 
@@ -90,3 +90,24 @@ def test_selection(tuples: Sequence[executor.Row]) -> None:
     assert selection.execute() == tuples[1]
 
     assert not selection.next()
+
+
+def test_limit(tuples: Sequence[executor.Row]) -> None:
+    # all rows
+    scan = executor.Scan(tuples)
+    limit = executor.Limit(len(tuples) + 1, scan)
+
+    for item in tuples:
+        assert limit.next()
+        assert item == limit.execute()
+
+    assert not limit.next()
+
+    # single row
+    scan = executor.Scan(tuples)
+    limit = executor.Limit(1, scan)
+
+    assert limit.next()
+    assert limit.execute() == tuples[0]
+
+    assert not limit.next()

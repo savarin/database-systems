@@ -115,5 +115,26 @@ class Selection:
 
         return False
 
-    def execute(self) -> Optional[Row]:
+    def execute(self) -> Row:
+        assert self.current is not None
         return self.current
+
+
+@dataclasses.dataclass
+class Limit:
+    limit: int
+    child: Operator
+
+    def __post_init__(self) -> None:
+        self.counter: int = 0
+
+    def next(self) -> bool:
+        increment = self.counter < self.limit and self.child.next()
+
+        if increment:
+            self.counter += 1
+
+        return increment
+
+    def execute(self) -> Row:
+        return self.child.execute()
