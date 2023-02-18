@@ -1,4 +1,4 @@
-from typing import Optional, Protocol, Sequence, Tuple
+from typing import Optional, Protocol, Sequence, Set, Tuple
 import abc
 import dataclasses
 
@@ -76,6 +76,25 @@ class Scan:
 
     def execute(self) -> Row:
         return self.tuples[self.index]
+
+
+@dataclasses.dataclass
+class Projection:
+    columns: Set[str]
+    child: Operator
+
+    def next(self) -> bool:
+        return self.child.next()
+
+    def execute(self) -> Row:
+        result = []
+        row = self.child.execute()
+
+        for k, v in row:
+            if k in self.columns:
+                result.append((k, v))
+
+        return tuple(result)
 
 
 @dataclasses.dataclass

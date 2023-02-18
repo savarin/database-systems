@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple
+from typing import Sequence
 
 import pytest
 
@@ -6,7 +6,7 @@ import executor
 
 
 @pytest.fixture
-def tuples() -> Sequence[Tuple[Tuple[str, str], ...]]:
+def tuples() -> Sequence[executor.Row]:
     return [
         (("key", "0"), ("value", "a")),
         (("key", "1"), ("value", "a")),
@@ -14,7 +14,7 @@ def tuples() -> Sequence[Tuple[Tuple[str, str], ...]]:
     ]
 
 
-def test_scan(tuples: Sequence[Tuple[Tuple[str, str], ...]]) -> None:
+def test_scan(tuples: Sequence[executor.Row]) -> None:
     scan = executor.Scan(tuples)
 
     for item in tuples:
@@ -24,7 +24,34 @@ def test_scan(tuples: Sequence[Tuple[Tuple[str, str], ...]]) -> None:
     assert not scan.next()
 
 
-def test_selection(tuples: Sequence[Tuple[Tuple[str, str], ...]]) -> None:
+def test_projection(tuples: Sequence[executor.Row]) -> None:
+    # empty set
+    scan = executor.Scan(tuples)
+    projection = executor.Projection(set(), scan)
+
+    for item in tuples:
+        assert projection.next()
+        assert len(projection.execute()) == 0
+
+    assert not projection.next()
+
+    # non-empty set
+    scan = executor.Scan(tuples)
+    projection = executor.Projection({"value"}, scan)
+
+    assert projection.next()
+    assert projection.execute() == (("value", "a"),)
+
+    assert projection.next()
+    assert projection.execute() == (("value", "a"),)
+
+    assert projection.next()
+    assert projection.execute() == (("value", "b"),)
+
+    assert not projection.next()
+
+
+def test_selection(tuples: Sequence[executor.Row]) -> None:
     # true expression
     scan = executor.Scan(tuples)
     selection = executor.Selection(executor.TrueExpression(), scan)
