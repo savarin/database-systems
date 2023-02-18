@@ -52,3 +52,14 @@ def test_selection(tuples: Sequence[Tuple[Tuple[str, str], ...]]) -> None:
     assert selection.execute() == tuples[1]
 
     assert not selection.next()
+
+    # equal-and expression
+    scan = executor.Scan(tuples)
+    left = executor.EqualExpression("key", "1")
+    right = executor.EqualExpression("value", "a")
+    selection = executor.Selection(executor.AndExpression(left, right), scan)
+
+    assert selection.next()
+    assert selection.execute() == tuples[1]
+
+    assert not selection.next()

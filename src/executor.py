@@ -43,6 +43,15 @@ class EqualExpression:
         raise Exception(f"Column {self.column} not found in row {row}.")
 
 
+@dataclasses.dataclass
+class AndExpression:
+    left: BinaryExpression
+    right: BinaryExpression
+
+    def execute(self, row: Row) -> bool:
+        return self.left.execute(row) and self.right.execute(row)
+
+
 class Operator(Protocol):
     @abc.abstractmethod
     def next(self) -> bool:
