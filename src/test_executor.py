@@ -13,3 +13,5 @@ def test_scan() -> None:
     for item in tuples:
         assert node.next()
         assert item == node.execute()
+
+    assert not node.next()
