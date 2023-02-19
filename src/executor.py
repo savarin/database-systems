@@ -16,7 +16,7 @@ class BinaryExpression(Protocol):
 
 
 @dataclasses.dataclass
-class TrueExpression:
+class TrueExpression(BinaryExpression):
     ...
 
     def execute(self, row: Row) -> bool:
@@ -24,7 +24,7 @@ class TrueExpression:
 
 
 @dataclasses.dataclass
-class FalseExpression:
+class FalseExpression(BinaryExpression):
     ...
 
     def execute(self, row: Row) -> bool:
@@ -32,7 +32,7 @@ class FalseExpression:
 
 
 @dataclasses.dataclass
-class EqualExpression:
+class EqualExpression(BinaryExpression):
     column: str
     value: str
 
@@ -45,7 +45,7 @@ class EqualExpression:
 
 
 @dataclasses.dataclass
-class AndExpression:
+class AndExpression(BinaryExpression):
     left: BinaryExpression
     right: BinaryExpression
 
@@ -64,7 +64,7 @@ class Operator(Protocol):
 
 
 @dataclasses.dataclass
-class Scan:
+class Scan(Operator):
     tuples: Sequence[Row]
 
     def __post_init__(self) -> None:
@@ -80,7 +80,7 @@ class Scan:
 
 
 @dataclasses.dataclass
-class Projection:
+class Projection(Operator):
     columns: Sequence[str]
     child: Operator
 
@@ -99,7 +99,7 @@ class Projection:
 
 
 @dataclasses.dataclass
-class Selection:
+class Selection(Operator):
     expression: BinaryExpression
     child: Operator
 
@@ -122,7 +122,7 @@ class Selection:
 
 
 @dataclasses.dataclass
-class Sort:
+class Sort(Operator):
     column: str
     child: Operator
 
@@ -153,7 +153,7 @@ class Sort:
 
 
 @dataclasses.dataclass
-class Limit:
+class Limit(Operator):
     limit: int
     child: Operator
 
