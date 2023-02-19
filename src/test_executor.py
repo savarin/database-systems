@@ -27,7 +27,7 @@ def test_scan(tuples: Sequence[executor.Row]) -> None:
 def test_projection(tuples: Sequence[executor.Row]) -> None:
     # empty set
     scan = executor.Scan(tuples)
-    projection = executor.Projection(set(), scan)
+    projection = executor.Projection(tuple(), scan)
 
     for _ in tuples:
         assert projection.next()
@@ -37,7 +37,7 @@ def test_projection(tuples: Sequence[executor.Row]) -> None:
 
     # non-empty set
     scan = executor.Scan(tuples)
-    projection = executor.Projection({"value"}, scan)
+    projection = executor.Projection(("value",), scan)
 
     assert projection.next()
     assert projection.execute() == (("value", "a"),)
@@ -90,6 +90,29 @@ def test_selection(tuples: Sequence[executor.Row]) -> None:
     assert selection.execute() == tuples[1]
 
     assert not selection.next()
+
+
+def test_sort(tuples: Sequence[executor.Row]) -> None:
+    # empty set
+    scan = executor.Scan(sorted([], key=lambda x: x[1][1], reverse=True))
+    sort = executor.Sort("value", scan)
+
+    assert not sort.next()
+
+    # non-empty set
+    scan = executor.Scan(sorted(tuples, key=lambda x: x[1][1], reverse=True))
+    sort = executor.Sort("value", scan)
+
+    assert sort.next()
+    assert sort.execute() == (("key", "0"), ("value", "a"))
+
+    assert sort.next()
+    assert sort.execute() == (("key", "1"), ("value", "a"))
+
+    assert sort.next()
+    assert sort.execute() == (("key", "2"), ("value", "b"))
+
+    assert not sort.next()
 
 
 def test_limit(tuples: Sequence[executor.Row]) -> None:

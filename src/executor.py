@@ -1,6 +1,7 @@
-from typing import Optional, Protocol, Sequence, Set, Tuple
+from typing import List, Optional, Protocol, Sequence, Tuple
 import abc
 import dataclasses
+import heapq
 
 
 Value = Tuple[str, str]
@@ -80,7 +81,7 @@ class Scan:
 
 @dataclasses.dataclass
 class Projection:
-    columns: Set[str]
+    columns: Sequence[str]
     child: Operator
 
     def next(self) -> bool:
@@ -118,6 +119,37 @@ class Selection:
     def execute(self) -> Row:
         assert self.current is not None
         return self.current
+
+
+@dataclasses.dataclass
+class Sort:
+    column: str
+    child: Operator
+
+    def __post_init__(self) -> None:
+        self.collect: bool = False
+        self.heap: List[Tuple[str, Row]] = []
+
+    def load(self):
+        index = None
+
+        while self.child.next():
+            row = self.child.execute()
+
+            if index is None:
+                index = [item[0] for item in row].index(self.column)
+
+            heapq.heappush(self.heap, (row[index], row))
+
+    def next(self) -> bool:
+        if not self.collect:
+            self.load()
+            self.collect = True
+
+        return len(self.heap) > 0
+
+    def execute(self) -> Row:
+        return heapq.heappop(self.heap)[1]
 
 
 @dataclasses.dataclass
